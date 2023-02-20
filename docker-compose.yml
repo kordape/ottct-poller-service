@@ -1,0 +1,42 @@
+version: '3.9'
+networks:
+  ottct-main-network:
+    driver: bridge
+services:
+  app:
+    build: .
+    container_name: app
+    image: ottct-main-service:latest
+    environment:
+      EXAMPLE: '1234'
+    ports:
+      - 8080:8080
+    networks:
+      - ottct-main-network
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: postgres:13.3-alpine
+    container_name: db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: tests
+    restart: on-failure
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U postgres
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - 5432:5432
+    command:
+      - /bin/sh
+      - -c
+      - |
+        echo 'psql -v ON_ERROR_STOP=1 --username "$$POSTGRES_USER" -c "CREATE DATABASE ottct_main_service";' >> /docker-entrypoint-initdb.d/init.sh;
+        docker-entrypoint.sh postgres
+    networks:
+      - ottct-main-network

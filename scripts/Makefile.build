@@ -1,0 +1,5 @@
+docker-build: ### Builds the service image
+	docker build -t $(DOCKER_IMAGE_APP) -f Dockerfile .
+
+docker-clean: ### Removes the latest service image
+	docker image rm -f $(DOCKER_IMAGE_APP)

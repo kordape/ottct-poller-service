@@ -1,0 +1,23 @@
+test: ### Run test
+	go test -v -cover -race ./internal/...
+
+start-db: ### Starts local db
+	docker-compose -f docker-compose.yml up db
+
+stop-db: ### Stops local db
+	@ echo "Stopping DB container..."
+	@ docker rm -f db
+
+compose-up: compose-down ### Run docker-compose
+	docker-compose -f docker-compose.yml up --build -d app db
+
+compose-down: ### Down docker-compose
+	docker-compose down --remove-orphans
+
+linter-golangci: ### Check by golangci linter
+	golangci-lint run
+
+integration-test: ### Run integration-test
+	go clean -testcache && go test -timeout 5m -race -v ./it/...
+
+.PHONY: integration-test
