@@ -1,18 +1,16 @@
 version: '3.9'
 networks:
-  ottct-main-network:
+  ottct-poller-network:
     driver: bridge
 services:
   app:
     build: .
     container_name: app
-    image: ottct-main-service:latest
+    image: ottct-poller-service:latest
     environment:
       EXAMPLE: '1234'
-    ports:
-      - 8080:8080
     networks:
-      - ottct-main-network
+      - ottct-poller-network
     depends_on:
       db:
         condition: service_healthy
@@ -39,4 +37,4 @@ services:
         echo 'psql -v ON_ERROR_STOP=1 --username "$$POSTGRES_USER" -c "CREATE DATABASE ottct_main_service";' >> /docker-entrypoint-initdb.d/init.sh;
         docker-entrypoint.sh postgres
     networks:
-      - ottct-main-network
+      - ottct-poller-network
