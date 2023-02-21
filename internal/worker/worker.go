@@ -146,7 +146,7 @@ func (w *Worker) process() (processor.JobResults, error) {
 	case <-ctxProcessor.Done():
 		// If context is cancelled (i.e. timeout reached)
 		// return context canceled error
-		return nil, context.Canceled
+		return results, context.Canceled
 	}
 
 }
