@@ -7,6 +7,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/kordape/ottct-poller-service/internal/event"
 	"github.com/kordape/ottct-poller-service/internal/processor"
 	"github.com/kordape/ottct-poller-service/pkg/logger"
 )
@@ -25,6 +26,7 @@ type Worker struct {
 
 	processorTimeoutInMs int64
 	entityProcessor      processor.ProcessEntityFn
+	fakeNewsEventSender  event.SendFakeNewsEventFn
 }
 
 type Option func(w *Worker)
@@ -41,7 +43,7 @@ func WithProcessorTimeout(timeoutInMs int64) Option {
 	}
 }
 
-func NewWorker(log logger.Interface, entityProcessor processor.ProcessEntityFn, opts ...Option) (*Worker, error) {
+func NewWorker(log logger.Interface, entityProcessor processor.ProcessEntityFn, fakeNewsEventSender event.SendFakeNewsEventFn, opts ...Option) (*Worker, error) {
 	stopChan := make(chan bool)
 
 	w := &Worker{
@@ -50,6 +52,7 @@ func NewWorker(log logger.Interface, entityProcessor processor.ProcessEntityFn, 
 		stopChannel:          stopChan,
 		processorTimeoutInMs: defaultProcessorTimeoutInMs,
 		entityProcessor:      entityProcessor,
+		fakeNewsEventSender:  fakeNewsEventSender,
 	}
 
 	for _, opt := range opts {
@@ -70,6 +73,10 @@ func (w *Worker) validate() error {
 
 	if w.entityProcessor == nil {
 		return errors.New("entity processor is nil")
+	}
+
+	if w.fakeNewsEventSender == nil {
+		return errors.New("fake news event sender is nil")
 	}
 
 	return nil
@@ -103,6 +110,7 @@ func (w *Worker) Run() error {
 					w.log.Error(fmt.Sprintf("Processor finished with error: %v", err))
 				}
 				w.log.Info(fmt.Sprintf("Worker tick done, got %d results", len(results)))
+				w.postProcess(results)
 			}
 		}
 	}()
@@ -188,4 +196,30 @@ func (w *Worker) collectResults(results *processor.JobResults, resultsChannels [
 	}()
 
 	return processingEnded
+}
+
+func (w *Worker) postProcess(results processor.JobResults) error {
+	events := []event.FakeNews{}
+
+	for _, result := range results {
+		if result.Error != nil {
+			continue
+		}
+
+		for _, fakeNewsTweet := range result.FakeNewsTweets {
+			events = append(events, event.FakeNews{
+				EntityId:  result.EntityId,
+				Timestamp: fakeNewsTweet.Timestamp,
+				Content:   fakeNewsTweet.Content,
+			})
+		}
+	}
+
+	err := w.fakeNewsEventSender(events)
+
+	if err != nil {
+		return errors.New("failed to send events")
+	}
+
+	return nil
 }
