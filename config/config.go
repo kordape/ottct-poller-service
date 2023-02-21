@@ -9,8 +9,9 @@ import (
 type (
 	// Config -.
 	Config struct {
-		App `yaml:"app"`
-		Log `yaml:"logger"`
+		App    `yaml:"app"`
+		Log    `yaml:"logger"`
+		Worker `yaml:"worker"`
 	}
 
 	// App -.
@@ -22,6 +23,11 @@ type (
 	// Log -.
 	Log struct {
 		Level string `env-required:"true" yaml:"log_level" env:"LOG_LEVEL"`
+	}
+
+	// Worker -.
+	Worker struct {
+		IntervalHours int `env-required:"true" yaml:"interval_hours" env:"WORKER_INTERVAL_HOURS"`
 	}
 )
 
