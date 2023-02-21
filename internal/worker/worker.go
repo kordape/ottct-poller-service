@@ -11,7 +11,10 @@ import (
 	"github.com/kordape/ottct-poller-service/pkg/logger"
 )
 
-const defaultTickInterval = 1 * time.Second
+const (
+	defaultTickInterval         = 1 * time.Second
+	defaultProcessorTimeoutInMs = 2 * int64(time.Millisecond)
+)
 
 type Worker struct {
 	tickInterval time.Duration
@@ -19,6 +22,8 @@ type Worker struct {
 
 	running     int32
 	stopChannel chan bool
+
+	processorTimeoutInMs int64
 }
 
 type Option func(w *Worker)
@@ -29,13 +34,20 @@ func WithInterval(interval time.Duration) Option {
 	}
 }
 
+func WithProcessorTimeout(timeoutInMs int64) Option {
+	return func(w *Worker) {
+		w.processorTimeoutInMs = timeoutInMs
+	}
+}
+
 func NewWorker(log logger.Interface, opts ...Option) (*Worker, error) {
 	stopChan := make(chan bool)
 
 	w := &Worker{
-		tickInterval: defaultTickInterval,
-		log:          log,
-		stopChannel:  stopChan,
+		tickInterval:         defaultTickInterval,
+		log:                  log,
+		stopChannel:          stopChan,
+		processorTimeoutInMs: defaultProcessorTimeoutInMs,
 	}
 
 	for _, opt := range opts {
@@ -80,7 +92,10 @@ func (w *Worker) Run() error {
 			case <-ticker.C:
 				// create processing task
 				w.log.Info("Worker tick")
-				w.process()
+				err := w.process()
+				if err != nil {
+					w.log.Error(fmt.Sprintf("Processor finished with error: %v", err))
+				}
 			}
 		}
 	}()
@@ -100,22 +115,31 @@ func (w *Worker) Stop() {
 	w.stopChannel <- true
 }
 
-func (w *Worker) process() {
+func (w *Worker) process() error {
 	endTime := time.Now()
 	startTime := endTime.Add(-w.tickInterval)
 
 	w.log.Info(fmt.Sprintf("Processing for interval: %s - %s", startTime.Format(time.UnixDate), endTime.Format(time.UnixDate)))
 
+	// Create a context with a timeout
+	ctxProcessor, cancel := context.WithTimeout(context.Background(), time.Millisecond*time.Duration(w.processorTimeoutInMs))
+	defer cancel()
+
 	// TODO: replace this line with fetched entities from db
 	entities := []string{"foo", "bar"}
 
-	resultsChannels := w.startFetching(context.Background(), entities)
+	resultsChannels := w.startFetching(ctxProcessor, entities)
 	results := make(processor.JobResults, 0, len(entities))
 	fetchingEnded := w.collectResults(&results, resultsChannels)
 
 	select {
 	case <-fetchingEnded:
 		w.log.Info(fmt.Sprintf("Fetching ended, fetched %d results", len(results)))
+		return nil
+	case <-ctxProcessor.Done():
+		// If context is cancelled (i.e. timeout reached)
+		// return context canceled error
+		return context.Canceled
 	}
 
 }
