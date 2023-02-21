@@ -150,10 +150,10 @@ func (w *Worker) startFetching(ctx context.Context, entities []string) []<-chan 
 		ch := make(chan processor.JobResult, 1)
 
 		fetchFn := processor.GetProcessEntityFn(entity)
-		go func(fetchTweetsForEntity processor.ProcessEntityFn) {
+		go func(processEntity processor.ProcessEntityFn) {
 			defer close(ch)
 			select {
-			case ch <- fetchTweetsForEntity(ctx):
+			case ch <- processEntity(ctx):
 			case <-ctx.Done():
 				return
 			}
