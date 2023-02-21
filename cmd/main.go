@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/kordape/ottct-poller-service/config"
+	"github.com/kordape/ottct-poller-service/internal/processor"
 	"github.com/kordape/ottct-poller-service/internal/worker"
 	"github.com/kordape/ottct-poller-service/pkg/logger"
 )
@@ -20,6 +21,7 @@ func main() {
 
 	_, err = worker.NewWorker(
 		log,
+		processor.GetProcessEntityFn(),
 		worker.WithInterval(time.Hour*time.Duration(cfg.IntervalHours)),
 	)
 

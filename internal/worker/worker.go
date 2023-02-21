@@ -24,6 +24,7 @@ type Worker struct {
 	stopChannel chan bool
 
 	processorTimeoutInMs int64
+	entityProcessor      processor.ProcessEntityFn
 }
 
 type Option func(w *Worker)
@@ -40,7 +41,7 @@ func WithProcessorTimeout(timeoutInMs int64) Option {
 	}
 }
 
-func NewWorker(log logger.Interface, opts ...Option) (*Worker, error) {
+func NewWorker(log logger.Interface, entityProcessor processor.ProcessEntityFn, opts ...Option) (*Worker, error) {
 	stopChan := make(chan bool)
 
 	w := &Worker{
@@ -48,6 +49,7 @@ func NewWorker(log logger.Interface, opts ...Option) (*Worker, error) {
 		log:                  log,
 		stopChannel:          stopChan,
 		processorTimeoutInMs: defaultProcessorTimeoutInMs,
+		entityProcessor:      entityProcessor,
 	}
 
 	for _, opt := range opts {
@@ -64,6 +66,10 @@ func NewWorker(log logger.Interface, opts ...Option) (*Worker, error) {
 func (w *Worker) validate() error {
 	if w.log == nil {
 		return errors.New("log is nil")
+	}
+
+	if w.entityProcessor == nil {
+		return errors.New("entity processor is nil")
 	}
 
 	return nil
@@ -92,10 +98,11 @@ func (w *Worker) Run() error {
 			case <-ticker.C:
 				// create processing task
 				w.log.Info("Worker tick")
-				err := w.process()
+				results, err := w.process()
 				if err != nil {
 					w.log.Error(fmt.Sprintf("Processor finished with error: %v", err))
 				}
+				w.log.Info(fmt.Sprintf("Worker tick done, got %d results", len(results)))
 			}
 		}
 	}()
@@ -115,7 +122,7 @@ func (w *Worker) Stop() {
 	w.stopChannel <- true
 }
 
-func (w *Worker) process() error {
+func (w *Worker) process() (processor.JobResults, error) {
 	endTime := time.Now()
 	startTime := endTime.Add(-w.tickInterval)
 
@@ -128,36 +135,36 @@ func (w *Worker) process() error {
 	// TODO: replace this line with fetched entities from db
 	entities := []string{"foo", "bar"}
 
-	resultsChannels := w.startFetching(ctxProcessor, entities)
+	resultsChannels := w.startProcessing(ctxProcessor, entities)
 	results := make(processor.JobResults, 0, len(entities))
-	fetchingEnded := w.collectResults(&results, resultsChannels)
+	processingEnded := w.collectResults(&results, resultsChannels)
 
 	select {
-	case <-fetchingEnded:
-		w.log.Info(fmt.Sprintf("Fetching ended, fetched %d results", len(results)))
-		return nil
+	case <-processingEnded:
+		w.log.Info(fmt.Sprintf("Processing ended, processed %d results", len(results)))
+		return results, nil
 	case <-ctxProcessor.Done():
 		// If context is cancelled (i.e. timeout reached)
 		// return context canceled error
-		return context.Canceled
+		return nil, context.Canceled
 	}
 
 }
 
-func (w *Worker) startFetching(ctx context.Context, entities []string) []<-chan processor.JobResult {
+func (w *Worker) startProcessing(ctx context.Context, entities []string) []<-chan processor.JobResult {
 	resultChannels := make([]<-chan processor.JobResult, len(entities))
-	for i, entity := range entities {
+	for i, e := range entities {
 		ch := make(chan processor.JobResult, 1)
 
-		fetchFn := processor.GetProcessEntityFn(entity)
+		entity := e
 		go func(processEntity processor.ProcessEntityFn) {
 			defer close(ch)
 			select {
-			case ch <- processEntity(ctx):
+			case ch <- processEntity(ctx, entity):
 			case <-ctx.Done():
 				return
 			}
-		}(fetchFn)
+		}(w.entityProcessor)
 		resultChannels[i] = ch
 	}
 
@@ -165,13 +172,14 @@ func (w *Worker) startFetching(ctx context.Context, entities []string) []<-chan 
 }
 
 func (w *Worker) collectResults(results *processor.JobResults, resultsChannels []<-chan processor.JobResult) chan struct{} {
-	fetchingEnded := make(chan struct{})
+	processingEnded := make(chan struct{})
 	go func() {
-		defer close(fetchingEnded)
+		defer close(processingEnded)
 		for _, ch := range resultsChannels {
 			for result := range ch {
 				if result.Error != nil {
 					w.log.Error(fmt.Sprintf("Received error job result: %v", result.Error))
+					continue
 				}
 				w.log.Info(fmt.Sprintf("Received result: %s", result.EntityId))
 				*results = append(*results, result)
@@ -179,5 +187,5 @@ func (w *Worker) collectResults(results *processor.JobResults, resultsChannels [
 		}
 	}()
 
-	return fetchingEnded
+	return processingEnded
 }
