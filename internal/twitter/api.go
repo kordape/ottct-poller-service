@@ -54,14 +54,11 @@ type metadata struct {
 
 func (client *Client) FetchTweets(ctx context.Context, ftr processor.FetchTweetsRequest) (processor.FetchTweetsResponse, error) {
 	baseUrl := fmt.Sprintf(getUsersTweetsUrl, ftr.EntityID)
-	var queryParams []string
-	queryParams = append(queryParams, fmt.Sprintf("max_results=%d", ftr.MaxResults))
-	queryParams = append(queryParams, "tweet.fields=id,text,created_at")
-	if ftr.StartTime != "" {
-		queryParams = append(queryParams, fmt.Sprintf("start_time=%s", ftr.StartTime))
-	}
-	if ftr.EndTime != "" {
-		queryParams = append(queryParams, fmt.Sprintf("end_time=%s", ftr.EndTime))
+	queryParams := []string{
+		fmt.Sprintf("max_results=%d", ftr.MaxResults),
+		"tweet.fields=id,text,created_at",
+		fmt.Sprintf("start_time=%s", ftr.StartTime.Format(time.RFC3339)),
+		fmt.Sprintf("end_time=%s", ftr.EndTime.Format(time.RFC3339)),
 	}
 
 	url := fmt.Sprintf("%s?%s", baseUrl, strings.Join(queryParams, "&"))

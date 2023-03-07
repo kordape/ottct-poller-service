@@ -35,8 +35,8 @@ func GetProcessFn(fetcher TweetsFetcher) ProcessFn {
 		// Fetch tweets in given time window
 		fetchRequest := FetchTweetsRequest{
 			EntityID:   request.EntityID,
-			StartTime:  request.StartTime.String(),
-			EndTime:    request.EndTime.String(),
+			StartTime:  request.StartTime,
+			EndTime:    request.EndTime,
 			MaxResults: defaultFetchCount,
 		}
 
