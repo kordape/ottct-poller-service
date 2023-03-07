@@ -23,7 +23,6 @@ func main() {
 
 	_, err = worker.NewWorker(
 		log,
-		// TODO: intitialize twitter fetcher with token from config
 		processor.GetProcessFn(
 			twitter.New(cfg.Worker.TwitterBearerToken),
 		),
