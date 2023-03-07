@@ -25,7 +25,7 @@ type Worker struct {
 	stopChannel chan bool
 
 	processorTimeoutInMs int64
-	entityProcessor      processor.ProcessEntityFn
+	processor            processor.ProcessFn
 	fakeNewsEventSender  event.SendFakeNewsEventFn
 }
 
@@ -43,7 +43,7 @@ func WithProcessorTimeout(timeoutInMs int64) Option {
 	}
 }
 
-func NewWorker(log logger.Interface, entityProcessor processor.ProcessEntityFn, fakeNewsEventSender event.SendFakeNewsEventFn, opts ...Option) (*Worker, error) {
+func NewWorker(log logger.Interface, processor processor.ProcessFn, fakeNewsEventSender event.SendFakeNewsEventFn, opts ...Option) (*Worker, error) {
 	stopChan := make(chan bool)
 
 	w := &Worker{
@@ -51,7 +51,7 @@ func NewWorker(log logger.Interface, entityProcessor processor.ProcessEntityFn, 
 		log:                  log,
 		stopChannel:          stopChan,
 		processorTimeoutInMs: defaultProcessorTimeoutInMs,
-		entityProcessor:      entityProcessor,
+		processor:            processor,
 		fakeNewsEventSender:  fakeNewsEventSender,
 	}
 
@@ -71,7 +71,7 @@ func (w *Worker) validate() error {
 		return errors.New("log is nil")
 	}
 
-	if w.entityProcessor == nil {
+	if w.processor == nil {
 		return errors.New("entity processor is nil")
 	}
 
@@ -143,7 +143,7 @@ func (w *Worker) process() (processor.JobResults, error) {
 	// TODO: replace this line with fetched entities from db
 	entities := []string{"foo", "bar"}
 
-	resultsChannels := w.startProcessing(ctxProcessor, entities)
+	resultsChannels := w.startProcessing(ctxProcessor, entities, startTime, endTime)
 	results := make(processor.JobResults, 0, len(entities))
 	processingEnded := w.collectResults(&results, resultsChannels)
 
@@ -159,20 +159,24 @@ func (w *Worker) process() (processor.JobResults, error) {
 
 }
 
-func (w *Worker) startProcessing(ctx context.Context, entities []string) []<-chan processor.JobResult {
+func (w *Worker) startProcessing(ctx context.Context, entities []string, startTime time.Time, endTime time.Time) []<-chan processor.JobResult {
 	resultChannels := make([]<-chan processor.JobResult, len(entities))
 	for i, e := range entities {
 		ch := make(chan processor.JobResult, 1)
 
 		entity := e
-		go func(processEntity processor.ProcessEntityFn) {
+		go func(process processor.ProcessFn) {
 			defer close(ch)
 			select {
-			case ch <- processEntity(ctx, entity):
+			case ch <- process(ctx, processor.JobRequest{
+				EntityID:  entity,
+				StartTime: startTime,
+				EndTime:   endTime,
+			}):
 			case <-ctx.Done():
 				return
 			}
-		}(w.entityProcessor)
+		}(w.processor)
 		resultChannels[i] = ch
 	}
 
@@ -189,7 +193,7 @@ func (w *Worker) collectResults(results *processor.JobResults, resultsChannels [
 					w.log.Error(fmt.Sprintf("Received error job result: %v", result.Error))
 					continue
 				}
-				w.log.Info(fmt.Sprintf("Received result: %s", result.EntityId))
+				w.log.Info(fmt.Sprintf("Received result: %s", result.EntityID))
 				*results = append(*results, result)
 			}
 		}
@@ -208,7 +212,7 @@ func (w *Worker) postProcess(results processor.JobResults) error {
 
 		for _, fakeNewsTweet := range result.FakeNewsTweets {
 			events = append(events, event.FakeNews{
-				EntityId:  result.EntityId,
+				EntityId:  result.EntityID,
 				Timestamp: fakeNewsTweet.Timestamp,
 				Content:   fakeNewsTweet.Content,
 			})

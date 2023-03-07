@@ -8,7 +8,7 @@ services:
     container_name: app
     image: ottct-poller-service:latest
     environment:
-      EXAMPLE: '1234'
+      TWITTER_BEARER_TOKEN: 'AAAAAAAAAAAAAAAAAAAAACXAcgEAAAAAMFkd4RQMKRSjvXUQGIrdZAHNJjg%3DLYqfisQPqvbuXeo0FjwYhrGqJ0eU6MVdHsLIqdvJ368MfZAq9o'
     networks:
       - ottct-poller-network
     depends_on:

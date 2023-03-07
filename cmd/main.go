@@ -7,6 +7,7 @@ import (
 	"github.com/kordape/ottct-poller-service/config"
 	"github.com/kordape/ottct-poller-service/internal/event"
 	"github.com/kordape/ottct-poller-service/internal/processor"
+	"github.com/kordape/ottct-poller-service/internal/twitter"
 	"github.com/kordape/ottct-poller-service/internal/worker"
 	"github.com/kordape/ottct-poller-service/pkg/logger"
 )
@@ -22,7 +23,10 @@ func main() {
 
 	_, err = worker.NewWorker(
 		log,
-		processor.GetProcessEntityFn(),
+		// TODO: intitialize twitter fetcher with token from config
+		processor.GetProcessFn(
+			twitter.New(cfg.Worker.TwitterBearerToken),
+		),
 		event.SendFakeNewsEventFnBuilder(),
 		worker.WithInterval(time.Hour*time.Duration(cfg.IntervalHours)),
 	)

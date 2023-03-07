@@ -2,7 +2,7 @@ package event
 
 type FakeNews struct {
 	EntityId  string
-	Timestamp int64
+	Timestamp string
 	Content   string
 }
 

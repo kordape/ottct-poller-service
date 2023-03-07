@@ -18,17 +18,17 @@ func TestWorker(t *testing.T) {
 	t.Run("single tick all results processed", func(t *testing.T) {
 		log := logger.New("DEBUG")
 
-		processEntityFn := func(ctx context.Context, entityId string) processor.JobResult {
+		processEntityFn := func(ctx context.Context, request processor.JobRequest) processor.JobResult {
 			fakeNewsTweets := make([]processor.FakeNewsTweet, 10)
 			for i := range fakeNewsTweets {
 				fakeNewsTweets[i] = processor.FakeNewsTweet{
-					Timestamp: time.Now().Unix(),
+					Timestamp: "1234",
 					Content:   fmt.Sprintf("Tweet%d", i),
 				}
 			}
 
 			return processor.JobResult{
-				EntityId:       entityId,
+				EntityID:       request.EntityID,
 				FakeNewsTweets: fakeNewsTweets,
 			}
 		}
@@ -51,10 +51,10 @@ func TestWorker(t *testing.T) {
 	t.Run("single tick half results failed", func(t *testing.T) {
 		log := logger.New("DEBUG")
 
-		processEntityFn := func(ctx context.Context, entityId string) processor.JobResult {
-			if entityId == "foo" {
+		processEntityFn := func(ctx context.Context, request processor.JobRequest) processor.JobResult {
+			if request.EntityID == "foo" {
 				return processor.JobResult{
-					EntityId: entityId,
+					EntityID: request.EntityID,
 					Error:    errors.New("big error"),
 				}
 			}
@@ -62,13 +62,13 @@ func TestWorker(t *testing.T) {
 			fakeNewsTweets := make([]processor.FakeNewsTweet, 10)
 			for i := range fakeNewsTweets {
 				fakeNewsTweets[i] = processor.FakeNewsTweet{
-					Timestamp: time.Now().Unix(),
+					Timestamp: "1234",
 					Content:   fmt.Sprintf("Tweet%d", i),
 				}
 			}
 
 			return processor.JobResult{
-				EntityId:       entityId,
+				EntityID:       request.EntityID,
 				FakeNewsTweets: fakeNewsTweets,
 			}
 		}
@@ -91,11 +91,11 @@ func TestWorker(t *testing.T) {
 	t.Run("single tick processing timeout", func(t *testing.T) {
 		log := logger.New("DEBUG")
 
-		processEntityFn := func(ctx context.Context, entityId string) processor.JobResult {
+		processEntityFn := func(ctx context.Context, request processor.JobRequest) processor.JobResult {
 			time.Sleep(20 * time.Second)
 
 			return processor.JobResult{
-				EntityId: entityId,
+				EntityID: request.EntityID,
 			}
 		}
 

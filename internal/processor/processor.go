@@ -5,32 +5,67 @@ import (
 	"time"
 )
 
+const (
+	defaultFetchCount = 5
+)
+
+type JobRequest struct {
+	EntityID  string
+	StartTime time.Time
+	EndTime   time.Time
+}
+
 type JobResult struct {
-	EntityId       string
+	EntityID       string
 	Error          error
 	FakeNewsTweets []FakeNewsTweet
 }
 
 type FakeNewsTweet struct {
 	Content   string
-	Timestamp int64
+	Timestamp string
 }
 
 type JobResults []JobResult
 
-type ProcessEntityFn func(ctx context.Context, entityId string) JobResult
+type ProcessFn func(ctx context.Context, request JobRequest) JobResult
 
-func GetProcessEntityFn() ProcessEntityFn {
-	// TODO: replace with proccessor that fetches tweets, classifies and filters out fake news tweets
-	return func(ctx context.Context, entityId string) JobResult {
+func GetProcessFn(fetcher TweetsFetcher) ProcessFn {
+	return func(ctx context.Context, request JobRequest) JobResult {
+		// Fetch tweets in given time window
+		fetchRequest := FetchTweetsRequest{
+			EntityID:   request.EntityID,
+			StartTime:  request.StartTime.String(),
+			EndTime:    request.EndTime.String(),
+			MaxResults: defaultFetchCount,
+		}
+
+		if err := fetchRequest.validate(); err != nil {
+			return JobResult{
+				EntityID: request.EntityID,
+				Error:    err,
+			}
+		}
+
+		tweets, err := fetcher.FetchTweets(ctx, fetchRequest)
+		if err != nil {
+			return JobResult{
+				EntityID: request.EntityID,
+				Error:    err,
+			}
+		}
+
+		fakeTweets := []FakeNewsTweet{}
+		for _, tweet := range tweets {
+			fakeTweets = append(fakeTweets, FakeNewsTweet{
+				Content:   tweet.Text,
+				Timestamp: tweet.CreatedAt,
+			})
+		}
+
 		return JobResult{
-			EntityId: entityId,
-			FakeNewsTweets: []FakeNewsTweet{
-				{
-					Content:   "Dummy content",
-					Timestamp: time.Now().Unix(),
-				},
-			},
+			EntityID:       request.EntityID,
+			FakeNewsTweets: fakeTweets,
 		}
 	}
 }
