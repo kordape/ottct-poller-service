@@ -1,0 +1,80 @@
+{
+    "data": [
+        {
+            "edit_history_tweet_ids": [
+                "1631232092301393920"
+            ],
+            "id": "1631232092301393920",
+            "text": "RT @erc4337: The rumors are true... ERC-4337 has been deployed on mainnet 🚀 \n\n🔍 Security audit by @OpenZeppelin \n🛠️ Bundlers and paymasters…"
+        },
+        {
+            "edit_history_tweet_ids": [
+                "1630543636097015811"
+            ],
+            "id": "1630543636097015811",
+            "text": "RT @EFDevcon: 🥁🥁🥁🦄\nWe have news! \n\nWe couldn't be more excited to announce that Devcon 7 will be coming to South East Asia in 2024! 🎊\n\n🧵 Wh…"
+        },
+        {
+            "edit_history_tweet_ids": [
+                "1630508626845609988"
+            ],
+            "id": "1630508626845609988",
+            "text": "RT @devfolio: Introducing QUADRATIC VOTING 😎🪩💃🏾\n\nQV is a mathematically optimal way of voting which goes beyond a yes or no vote, enabling…"
+        },
+        {
+            "edit_history_tweet_ids": [
+                "1630336238648537090"
+            ],
+            "id": "1630336238648537090",
+            "text": "RT @EF_ESP: 🎉The Account Abstraction Grants round is now open!🎉\n\nThe Ethereum Foundation is requesting proposals to improve and strengthen…"
+        },
+        {
+            "edit_history_tweet_ids": [
+                "1629249755707584512"
+            ],
+            "id": "1629249755707584512",
+            "text": "RT @TimBeiko: ⛓️ Testnet TL;DR Thread ⛓️\n\nThe topic of Ethereum testnets came up again this week, which is something people either feel lik…"
+        },
+        {
+            "edit_history_tweet_ids": [
+                "1629176919877976064"
+            ],
+            "id": "1629176919877976064",
+            "text": "RT @dannyryan: Some recent reflections on Ethereum\n\nhttps://t.co/bMXqpw7Xwi"
+        },
+        {
+            "edit_history_tweet_ids": [
+                "1628542725942386692"
+            ],
+            "id": "1628542725942386692",
+            "text": "RT @solidity_lang: We just released Solidity 0.8.19! 🚀\nThis latest version includes a range of improvements and, most importantly, custom o…"
+        },
+        {
+            "edit_history_tweet_ids": [
+                "1628453279058300929"
+            ],
+            "id": "1628453279058300929",
+            "text": "RT @EF_ESP: Rounding off 2022 by featuring the stellar builders, community organizers, and researchers whose work received funding last qua…"
+        },
+        {
+            "edit_history_tweet_ids": [
+                "1628180923521941506"
+            ],
+            "id": "1628180923521941506",
+            "text": "RT @TimBeiko: Sepolia Shapella scheduled for Feb 28, 4AM UTC 🌃\n\nRead about the upgrade, and find links to the specs, client releases and wi…"
+        },
+        {
+            "edit_history_tweet_ids": [
+                "1627444669155102720"
+            ],
+            "id": "1627444669155102720",
+            "text": "RT @WeekInEthNews: Latest Week in Ethereum News\n\nhttps://t.co/jChGt3deUV\n\nThanks to SpeedRunEthereum for making this issue possible 🙏"
+        }
+    ],
+    "meta": {
+        "result_count": 10,
+        "newest_id": "1631232092301393920",
+        "oldest_id": "1627444669155102720",
+        "next_token": "7140dibdnow9c7btw45165nerk42dyp98yili9mn9eals"
+    }
+}

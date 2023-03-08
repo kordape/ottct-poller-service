@@ -24,12 +24,10 @@ type Client struct {
 	bearerToken string
 }
 
-func New(bearerToken string) *Client {
+func New(client *http.Client, bearerToken string) *Client {
 	return &Client{
 		bearerToken: bearerToken,
-		httpClient: &http.Client{
-			Timeout: 10 * time.Second,
-		},
+		httpClient:  client,
 	}
 }
 
@@ -73,6 +71,11 @@ func (client *Client) FetchTweets(ctx context.Context, ftr processor.FetchTweets
 	}
 
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("request failed with: %d", resp.StatusCode)
+	}
+
 	response, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("error reading response: %w", err)

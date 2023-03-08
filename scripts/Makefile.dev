@@ -20,4 +20,7 @@ linter-golangci: ### Check by golangci linter
 integration-test: ### Run integration-test
 	go clean -testcache && go test -timeout 5m -race -v ./it/...
 
+generate: ### Run go generate
+	go generate ./...
+
 .PHONY: integration-test

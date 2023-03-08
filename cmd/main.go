@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/kordape/ottct-poller-service/config"
@@ -24,7 +25,12 @@ func main() {
 	_, err = worker.NewWorker(
 		log,
 		processor.GetProcessFn(
-			twitter.New(cfg.Worker.TwitterBearerToken),
+			twitter.New(
+				&http.Client{
+					Timeout: 10 * time.Second,
+				},
+				cfg.Worker.TwitterBearerToken,
+			),
 		),
 		event.SendFakeNewsEventFnBuilder(),
 		worker.WithInterval(time.Hour*time.Duration(cfg.IntervalHours)),
