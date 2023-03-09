@@ -10,6 +10,7 @@ import (
 
 	"github.com/kordape/ottct-poller-service/internal/processor"
 	"github.com/kordape/ottct-poller-service/internal/twitter/mocks"
+	"github.com/kordape/ottct-poller-service/pkg/logger"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -38,7 +39,7 @@ func TestFetchTweets(t *testing.T) {
 
 		api := New(client, "futile")
 
-		resp, err := api.FetchTweets(context.Background(), processor.FetchTweetsRequest{})
+		resp, err := api.FetchTweets(context.Background(), logger.New("DEBUG"), processor.FetchTweetsRequest{})
 
 		assert.NoError(t, err)
 		assert.NotEmpty(t, resp)
@@ -54,7 +55,7 @@ func TestFetchTweets(t *testing.T) {
 
 		api := New(client, "futile")
 
-		resp, err := api.FetchTweets(context.Background(), processor.FetchTweetsRequest{})
+		resp, err := api.FetchTweets(context.Background(), logger.New("DEBUG"), processor.FetchTweetsRequest{})
 
 		assert.Error(t, err)
 		assert.Empty(t, resp)

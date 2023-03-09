@@ -3,7 +3,7 @@ app:
   version: '1.0.0'
 
 worker:
-  interval_hours: 2
+  interval_seconds: 10
 
 logger:
   log_level: 'debug'

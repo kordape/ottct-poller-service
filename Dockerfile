@@ -10,7 +10,7 @@ COPY --from=modules /go/pkg /go/pkg
 COPY . /app
 WORKDIR /app
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
-    go build -o /bin/app ./cmd/app
+    go build -o /bin/app ./cmd
 
 # Step 3: Final
 FROM scratch

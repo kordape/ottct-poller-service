@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	defaultTickInterval         = 1 * time.Second
+	defaultTickInterval         = 10 * time.Second
 	defaultProcessorTimeoutInMs = 2 * int64(time.Millisecond)
 )
 
@@ -134,7 +134,7 @@ func (w *Worker) process() (processor.JobResults, error) {
 	endTime := time.Now()
 	startTime := endTime.Add(-w.tickInterval)
 
-	w.log.Info(fmt.Sprintf("Processing for interval: %s - %s", startTime.Format(time.UnixDate), endTime.Format(time.UnixDate)))
+	w.log.Info(fmt.Sprintf("Processing for interval: %s - %s", startTime.Format(time.RFC3339), endTime.Format(time.RFC3339)))
 
 	// Create a context with a timeout
 	ctxProcessor, cancel := context.WithTimeout(context.Background(), time.Millisecond*time.Duration(w.processorTimeoutInMs))
@@ -150,6 +150,7 @@ func (w *Worker) process() (processor.JobResults, error) {
 	select {
 	case <-processingEnded:
 		w.log.Info(fmt.Sprintf("Processing ended, processed %d results", len(results)))
+		w.log.Info(fmt.Sprintf("Results: %v", results))
 		return results, nil
 	case <-ctxProcessor.Done():
 		// If context is cancelled (i.e. timeout reached)

@@ -27,7 +27,7 @@ type (
 
 	// Worker -.
 	Worker struct {
-		IntervalHours      int    `env-required:"true" yaml:"interval_hours" env:"WORKER_INTERVAL_HOURS"`
+		IntervalSeconds    int    `env-required:"true" yaml:"interval_seconds" env:"WORKER_INTERVAL_SECONDS"`
 		TwitterBearerToken string `env-required:"true" yaml:"twitter_bearer_token" env:"TWITTER_BEARER_TOKEN"`
 		PredictorBaseURL   string `env-required:"true" yaml:"predictor_base_url" env:"PREDICTOR_BASE_URL"`
 	}

@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"time"
+
+	"github.com/kordape/ottct-poller-service/pkg/logger"
 )
 
 const (
@@ -13,7 +15,7 @@ const (
 
 //go:generate mockery --inpackage --case snake --disable-version-string --name "TweetsFetcher"
 type TweetsFetcher interface {
-	FetchTweets(context.Context, FetchTweetsRequest) (FetchTweetsResponse, error)
+	FetchTweets(context.Context, logger.Interface, FetchTweetsRequest) (FetchTweetsResponse, error)
 }
 
 type FetchTweetsRequest struct {

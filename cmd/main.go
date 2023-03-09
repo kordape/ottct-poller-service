@@ -3,6 +3,9 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/kordape/ottct-poller-service/config"
@@ -23,9 +26,10 @@ func main() {
 
 	log := logger.New(cfg.Log.Level)
 
-	_, err = worker.NewWorker(
+	w, err := worker.NewWorker(
 		log,
 		processor.GetProcessFn(
+			log,
 			twitter.New(
 				&http.Client{
 					Timeout: 10 * time.Second,
@@ -40,10 +44,24 @@ func main() {
 			),
 		),
 		event.SendFakeNewsEventFnBuilder(),
-		worker.WithInterval(time.Hour*time.Duration(cfg.IntervalHours)),
+		worker.WithInterval(time.Second*time.Duration(cfg.IntervalSeconds)),
 	)
 
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	err = w.Run()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Wait for terminal signal.
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
+	<-signals
+
+	log.Info("Stopping worker")
+	w.Stop()
 }

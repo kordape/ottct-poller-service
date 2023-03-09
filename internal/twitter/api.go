@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/kordape/ottct-poller-service/internal/processor"
+	"github.com/kordape/ottct-poller-service/pkg/logger"
 )
 
 // testing path
@@ -53,7 +54,7 @@ type metadata struct {
 	PreviousToken string `json:"previous_token"`
 }
 
-func (client *Client) FetchTweets(ctx context.Context, ftr processor.FetchTweetsRequest) (processor.FetchTweetsResponse, error) {
+func (client *Client) FetchTweets(ctx context.Context, log logger.Interface, ftr processor.FetchTweetsRequest) (processor.FetchTweetsResponse, error) {
 	baseUrl := fmt.Sprintf(getUsersTweetsUrl, ftr.EntityID)
 	queryParams := []string{
 		fmt.Sprintf("max_results=%d", ftr.MaxResults),
@@ -68,6 +69,7 @@ func (client *Client) FetchTweets(ctx context.Context, ftr processor.FetchTweets
 		return nil, fmt.Errorf("error creating request: %w", err)
 	}
 	request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", client.bearerToken))
+	log.Info(fmt.Sprintf("Calling Twitter API with: %s", url))
 	resp, err := client.httpClient.Do(request)
 	if err != nil {
 		return nil, fmt.Errorf("error doing request: %w", err)
@@ -84,14 +86,15 @@ func (client *Client) FetchTweets(ctx context.Context, ftr processor.FetchTweets
 		return nil, fmt.Errorf("error reading response: %w", err)
 	}
 
-	var tweeterResponse getUserTweetsResponse
-	err = json.Unmarshal(response, &tweeterResponse)
+	var twitterResponse getUserTweetsResponse
+	err = json.Unmarshal(response, &twitterResponse)
 	if err != nil {
 		return nil, err
 	}
 
-	result := make([]processor.Tweet, len(tweeterResponse.Data))
-	for i, tweet := range tweeterResponse.Data {
+	log.Info(fmt.Sprintf("Received response from Twitter API: %v", twitterResponse))
+	result := make([]processor.Tweet, len(twitterResponse.Data))
+	for i, tweet := range twitterResponse.Data {
 		result[i] = processor.Tweet{
 			ID:        tweet.ID,
 			Text:      tweet.Text,

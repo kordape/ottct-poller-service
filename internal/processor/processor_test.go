@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/kordape/ottct-poller-service/pkg/logger"
 	"github.com/stretchr/testify/assert"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -23,12 +24,12 @@ func TestProcess(t *testing.T) {
 			EndTime:    now,
 			MaxResults: defaultFetchCount,
 		}
-		fetcher.On("FetchTweets", mock.Anything, expectedFetchRequest).Return(
+		fetcher.On("FetchTweets", mock.Anything, mock.Anything, expectedFetchRequest).Return(
 			FetchTweetsResponse{},
 			errors.New("big error"),
 		)
 
-		process := GetProcessFn(fetcher, classifier)
+		process := GetProcessFn(logger.New("DEBUG"), fetcher, classifier)
 
 		response := process(context.Background(), JobRequest{
 			EntityID:  "entity",
@@ -52,7 +53,7 @@ func TestProcess(t *testing.T) {
 			EndTime:    now,
 			MaxResults: defaultFetchCount,
 		}
-		fetcher.On("FetchTweets", mock.Anything, expectedFetchRequest).Return(
+		fetcher.On("FetchTweets", mock.Anything, mock.Anything, expectedFetchRequest).Return(
 			FetchTweetsResponse([]Tweet{
 				{
 					ID:        "1",
@@ -81,7 +82,7 @@ func TestProcess(t *testing.T) {
 			errors.New("big error"),
 		)
 
-		process := GetProcessFn(fetcher, classifier)
+		process := GetProcessFn(logger.New("DEBUG"), fetcher, classifier)
 
 		response := process(context.Background(), JobRequest{
 			EntityID:  "entity",
@@ -104,7 +105,7 @@ func TestProcess(t *testing.T) {
 			EndTime:    now,
 			MaxResults: defaultFetchCount,
 		}
-		fetcher.On("FetchTweets", mock.Anything, expectedFetchRequest).Return(
+		fetcher.On("FetchTweets", mock.Anything, mock.Anything, expectedFetchRequest).Return(
 			FetchTweetsResponse([]Tweet{
 				{
 					ID:        "1",
@@ -139,7 +140,7 @@ func TestProcess(t *testing.T) {
 			nil,
 		)
 
-		process := GetProcessFn(fetcher, classifier)
+		process := GetProcessFn(logger.New("DEBUG"), fetcher, classifier)
 
 		response := process(context.Background(), JobRequest{
 			EntityID:  "entity",
