@@ -11,15 +11,13 @@ const (
 	Fake Classification = 1
 )
 
-//go:generate mockery --dir=./ --name=TweetsClassifier --filename=classifier.go --output=./mocks  --outpkg=mocks
-type TweetsClassifier interface {
-	Classify(ctx context.Context, tweets []ClassifyTweetsRequest) (ClassifyTweetsResponse, error)
+//go:generate mockery --dir=./ --name=FakeNewsClassifier --filename=classifier.go --output=./mocks  --outpkg=mocks
+type FakeNewsClassifier interface {
+	Classify(ctx context.Context, request ClassifyRequest) (ClassifyResponse, error)
 }
 
-type ClassifyTweetsRequest struct {
-	Tweet string
-}
+type ClassifyRequest []string
 
-type ClassifyTweetsResponse struct {
+type ClassifyResponse struct {
 	Classification []Classification
 }

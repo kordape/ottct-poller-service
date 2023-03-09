@@ -19,6 +19,9 @@ const (
 	getUsersTweetsUrl = "https://api.twitter.com/2/users/%s/tweets/"
 )
 
+// Make sure Client implement TweetsFetcher interface
+var _ processor.TweetsFetcher = &Client{}
+
 type Client struct {
 	httpClient  *http.Client
 	bearerToken string

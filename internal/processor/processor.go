@@ -31,7 +31,7 @@ type JobResults []JobResult
 
 type ProcessFn func(ctx context.Context, request JobRequest) JobResult
 
-func GetProcessFn(fetcher TweetsFetcher, classifier TweetsClassifier) ProcessFn {
+func GetProcessFn(fetcher TweetsFetcher, classifier FakeNewsClassifier) ProcessFn {
 	return func(ctx context.Context, request JobRequest) JobResult {
 		// Fetch tweets in given time window
 		fetchRequest := FetchTweetsRequest{
@@ -56,11 +56,9 @@ func GetProcessFn(fetcher TweetsFetcher, classifier TweetsClassifier) ProcessFn 
 			}
 		}
 
-		classifyRequest := make([]ClassifyTweetsRequest, len(tweets))
+		classifyRequest := make(ClassifyRequest, len(tweets))
 		for i, t := range tweets {
-			classifyRequest[i] = ClassifyTweetsRequest{
-				Tweet: t.Text,
-			}
+			classifyRequest[i] = t.Text
 		}
 
 		// Classify tweets as fake or not

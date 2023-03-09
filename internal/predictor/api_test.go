@@ -38,7 +38,7 @@ func TestFetchTweets(t *testing.T) {
 
 		api := New(client, "futile")
 
-		resp, err := api.Classify(context.Background(), []processor.ClassifyTweetsRequest{})
+		resp, err := api.Classify(context.Background(), processor.ClassifyRequest{})
 
 		assert.NoError(t, err)
 		assert.NotEmpty(t, resp)
@@ -54,7 +54,7 @@ func TestFetchTweets(t *testing.T) {
 
 		api := New(client, "futile")
 
-		resp, err := api.Classify(context.Background(), []processor.ClassifyTweetsRequest{})
+		resp, err := api.Classify(context.Background(), processor.ClassifyRequest{})
 
 		assert.Error(t, err)
 		assert.Empty(t, resp)
