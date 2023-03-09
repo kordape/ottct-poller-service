@@ -11,7 +11,7 @@ const (
 	fetchTweetsMaxResults = 100
 )
 
-//go:generate mockery --dir=./ --name=TweetsFetcher --filename=fetcher.go --output=./mocks  --outpkg=mocks
+//go:generate mockery --inpackage --case snake --disable-version-string --name "TweetsFetcher"
 type TweetsFetcher interface {
 	FetchTweets(context.Context, FetchTweetsRequest) (FetchTweetsResponse, error)
 }

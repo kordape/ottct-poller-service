@@ -11,7 +11,7 @@ const (
 	Fake Classification = 1
 )
 
-//go:generate mockery --dir=./ --name=FakeNewsClassifier --filename=classifier.go --output=./mocks  --outpkg=mocks
+//go:generate mockery --inpackage --case snake --disable-version-string --name "FakeNewsClassifier"
 type FakeNewsClassifier interface {
 	Classify(ctx context.Context, request ClassifyRequest) (ClassifyResponse, error)
 }
