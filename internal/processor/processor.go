@@ -30,7 +30,7 @@ type JobResults []JobResult
 
 type ProcessFn func(ctx context.Context, request JobRequest) JobResult
 
-func GetProcessFn(fetcher TweetsFetcher) ProcessFn {
+func GetProcessFn(fetcher TweetsFetcher, classifier TweetsClassifier) ProcessFn {
 	return func(ctx context.Context, request JobRequest) JobResult {
 		// Fetch tweets in given time window
 		fetchRequest := FetchTweetsRequest{

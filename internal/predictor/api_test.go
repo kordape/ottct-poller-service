@@ -1,4 +1,4 @@
-package twitter
+package predictor
 
 import (
 	"bytes"
@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/kordape/ottct-poller-service/internal/predictor/mocks"
 	"github.com/kordape/ottct-poller-service/internal/processor"
-	"github.com/kordape/ottct-poller-service/internal/twitter/mocks"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -38,7 +38,7 @@ func TestFetchTweets(t *testing.T) {
 
 		api := New(client, "futile")
 
-		resp, err := api.FetchTweets(context.Background(), processor.FetchTweetsRequest{})
+		resp, err := api.Classify(context.Background(), []processor.ClassifyTweetsRequest{})
 
 		assert.NoError(t, err)
 		assert.NotEmpty(t, resp)
@@ -54,7 +54,7 @@ func TestFetchTweets(t *testing.T) {
 
 		api := New(client, "futile")
 
-		resp, err := api.FetchTweets(context.Background(), processor.FetchTweetsRequest{})
+		resp, err := api.Classify(context.Background(), []processor.ClassifyTweetsRequest{})
 
 		assert.Error(t, err)
 		assert.Empty(t, resp)

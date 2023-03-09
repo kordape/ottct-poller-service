@@ -7,6 +7,7 @@ import (
 
 	"github.com/kordape/ottct-poller-service/config"
 	"github.com/kordape/ottct-poller-service/internal/event"
+	"github.com/kordape/ottct-poller-service/internal/predictor"
 	"github.com/kordape/ottct-poller-service/internal/processor"
 	"github.com/kordape/ottct-poller-service/internal/twitter"
 	"github.com/kordape/ottct-poller-service/internal/worker"
@@ -30,6 +31,12 @@ func main() {
 					Timeout: 10 * time.Second,
 				},
 				cfg.Worker.TwitterBearerToken,
+			),
+			predictor.New(
+				&http.Client{
+					Timeout: 10 * time.Second,
+				},
+				cfg.Worker.PredictorBaseURL,
 			),
 		),
 		event.SendFakeNewsEventFnBuilder(),

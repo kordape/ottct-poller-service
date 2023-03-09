@@ -9,11 +9,21 @@ services:
     image: ottct-poller-service:latest
     environment:
       TWITTER_BEARER_TOKEN: 'AAAAAAAAAAAAAAAAAAAAACXAcgEAAAAAMFkd4RQMKRSjvXUQGIrdZAHNJjg%3DLYqfisQPqvbuXeo0FjwYhrGqJ0eU6MVdHsLIqdvJ368MfZAq9o'
+      PREDICTOR_BASE_URL: 'http://ml:8080/predict'
     networks:
       - ottct-poller-network
+    links:
+      - "ml:ml"
     depends_on:
       db:
         condition: service_healthy
+  ml:
+    container_name: ml
+    image: ml
+    ports:
+      - 8081:8080
+    networks:
+      - ottct-poller-network
   db:
     image: postgres:13.3-alpine
     container_name: db
