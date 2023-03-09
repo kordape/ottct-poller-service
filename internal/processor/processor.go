@@ -2,6 +2,7 @@ package processor
 
 import (
 	"context"
+	"errors"
 	"time"
 )
 
@@ -55,12 +56,38 @@ func GetProcessFn(fetcher TweetsFetcher, classifier TweetsClassifier) ProcessFn 
 			}
 		}
 
+		classifyRequest := make([]ClassifyTweetsRequest, len(tweets))
+		for i, t := range tweets {
+			classifyRequest[i] = ClassifyTweetsRequest{
+				Tweet: t.Text,
+			}
+		}
+
+		// Classify tweets as fake or not
+		classifyResponse, err := classifier.Classify(ctx, classifyRequest)
+		if err != nil {
+			return JobResult{
+				EntityID: request.EntityID,
+				Error:    err,
+			}
+		}
+
+		if len(classifyResponse.Classification) != len(tweets) {
+			return JobResult{
+				EntityID: request.EntityID,
+				Error:    errors.New("different number of predictions and tweets"),
+			}
+		}
+
 		fakeTweets := []FakeNewsTweet{}
-		for _, tweet := range tweets {
-			fakeTweets = append(fakeTweets, FakeNewsTweet{
-				Content:   tweet.Text,
-				Timestamp: tweet.CreatedAt,
-			})
+		// Filter out only fake tweets
+		for i, c := range classifyResponse.Classification {
+			if c == Fake {
+				fakeTweets = append(fakeTweets, FakeNewsTweet{
+					Content:   tweets[i].Text,
+					Timestamp: tweets[i].CreatedAt,
+				})
+			}
 		}
 
 		return JobResult{
