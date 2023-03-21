@@ -3,6 +3,27 @@ networks:
   ottct-poller-network:
     driver: bridge
 services:
+
+  localstack:
+    image: localstack/localstack
+    container_name: localstack
+    healthcheck:
+      test:
+        - CMD
+        - bash
+        - -c
+        - awslocal sqs list-queues
+      interval: 5s
+      timeout: 10s
+      start_period: 10s
+    ports:
+      - 4566:4566
+    environment:
+      - SERVICES=sqs
+    volumes:
+      - ./init-scripts:/docker-entrypoint-initaws.d
+    networks:
+      - ottct-poller-network
   app:
     build: .
     container_name: app

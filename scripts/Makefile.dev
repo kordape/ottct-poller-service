@@ -9,7 +9,7 @@ stop-db: ### Stops local db
 	@ docker rm -f db
 
 compose-up: compose-down ### Run docker-compose
-	docker-compose -f docker-compose.yml up --build -d app db
+	docker-compose -f docker-compose.yml up --build -d app db localstack
 
 compose-down: ### Down docker-compose
 	docker-compose down --remove-orphans
