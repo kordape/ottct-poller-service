@@ -15,7 +15,7 @@ import (
 	awssqs "github.com/aws/aws-sdk-go-v2/service/sqs"
 
 	"github.com/kordape/ottct-poller-service/config"
-	sqs1 "github.com/kordape/ottct-poller-service/internal/event"
+	"github.com/kordape/ottct-poller-service/internal/event"
 	"github.com/kordape/ottct-poller-service/internal/predictor"
 	"github.com/kordape/ottct-poller-service/internal/processor"
 	"github.com/kordape/ottct-poller-service/internal/twitter"
@@ -57,7 +57,7 @@ func main() {
 				cfg.Worker.PredictorBaseURL,
 			),
 		),
-		sqs1.SendFakeNewsEventFnBuilder(sqsClient),
+		event.SendFakeNewsEventFnBuilder(sqsClient),
 		worker.WithInterval(time.Second*time.Duration(cfg.IntervalSeconds)),
 	)
 
