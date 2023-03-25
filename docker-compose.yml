@@ -31,6 +31,9 @@ services:
     environment:
       TWITTER_BEARER_TOKEN: 'AAAAAAAAAAAAAAAAAAAAACXAcgEAAAAAMFkd4RQMKRSjvXUQGIrdZAHNJjg%3DLYqfisQPqvbuXeo0FjwYhrGqJ0eU6MVdHsLIqdvJ368MfZAq9o'
       PREDICTOR_BASE_URL: 'http://ml:8080/predict'
+      FAKE_NEWS_QUEUE_URL: 'http://localstack:4566/000000000000/default-fake-news'
+      FAKE_NEWS_QUEUE_REGION: 'us-east-1'
+      FAKE_NEWS_QUEUE_ENDPOINT: 'http://localhost:4566'
     networks:
       - ottct-poller-network
     links:

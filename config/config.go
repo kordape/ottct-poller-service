@@ -9,9 +9,10 @@ import (
 type (
 	// Config -.
 	Config struct {
-		App    `yaml:"app"`
-		Log    `yaml:"logger"`
-		Worker `yaml:"worker"`
+		App           `yaml:"app"`
+		Log           `yaml:"logger"`
+		Worker        `yaml:"worker"`
+		FakeNewsQueue `yaml:"fake_news_queue"`
 	}
 
 	// App -.
@@ -30,6 +31,13 @@ type (
 		IntervalSeconds    int    `env-required:"true" yaml:"interval_seconds" env:"WORKER_INTERVAL_SECONDS"`
 		TwitterBearerToken string `env-required:"true" yaml:"twitter_bearer_token" env:"TWITTER_BEARER_TOKEN"`
 		PredictorBaseURL   string `env-required:"true" yaml:"predictor_base_url" env:"PREDICTOR_BASE_URL"`
+	}
+
+	// FakeNewsQueue holds configuration for `FakeNewsQueue` queue.
+	FakeNewsQueue struct {
+		SQSQueueURL    string `env-required:"true" yaml:"queue_url" env:"FAKE_NEWS_QUEUE_URL"`
+		SQSAWSEndpoint string `env-required:"false" yaml:"queue_endpoint" env:"FAKE_NEWS_QUEUE_ENDPOINT"`
+		SQSRegion      string `env-required:"true" yaml:"queue_region" env:"FAKE_NEWS_QUEUE_REGION"`
 	}
 )
 
