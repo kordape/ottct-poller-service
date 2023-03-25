@@ -22,7 +22,7 @@ func TestWorker(t *testing.T) {
 			fakeNewsTweets := make([]processor.FakeNewsTweet, 10)
 			for i := range fakeNewsTweets {
 				fakeNewsTweets[i] = processor.FakeNewsTweet{
-					Timestamp: "1234",
+					Timestamp: time.Now(),
 					Content:   fmt.Sprintf("Tweet%d", i),
 				}
 			}
@@ -62,7 +62,7 @@ func TestWorker(t *testing.T) {
 			fakeNewsTweets := make([]processor.FakeNewsTweet, 10)
 			for i := range fakeNewsTweets {
 				fakeNewsTweets[i] = processor.FakeNewsTweet{
-					Timestamp: "1234",
+					Timestamp: time.Now(),
 					Content:   fmt.Sprintf("Tweet%d", i),
 				}
 			}

@@ -27,7 +27,7 @@ type JobResult struct {
 
 type FakeNewsTweet struct {
 	Content   string
-	Timestamp string
+	Timestamp time.Time
 }
 
 type JobResults []JobResult

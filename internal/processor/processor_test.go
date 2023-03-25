@@ -58,17 +58,17 @@ func TestProcess(t *testing.T) {
 				{
 					ID:        "1",
 					Text:      "Dummy 1",
-					CreatedAt: now.String(),
+					CreatedAt: now,
 				},
 				{
 					ID:        "2",
 					Text:      "Dummy 2",
-					CreatedAt: now.String(),
+					CreatedAt: now,
 				},
 				{
 					ID:        "3",
 					Text:      "Dummy 3",
-					CreatedAt: now.String(),
+					CreatedAt: now,
 				},
 			},
 			),
@@ -110,17 +110,17 @@ func TestProcess(t *testing.T) {
 				{
 					ID:        "1",
 					Text:      "Dummy 1",
-					CreatedAt: now.String(),
+					CreatedAt: now,
 				},
 				{
 					ID:        "2",
 					Text:      "Dummy 2",
-					CreatedAt: now.String(),
+					CreatedAt: now,
 				},
 				{
 					ID:        "3",
 					Text:      "Dummy 3",
-					CreatedAt: now.String(),
+					CreatedAt: now,
 				},
 			},
 			),
