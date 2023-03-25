@@ -33,7 +33,7 @@ func TestWorker(t *testing.T) {
 			}
 		}
 
-		eventSenderFn := func(events []event.FakeNews) error {
+		eventSenderFn := func(ctx context.Context, events []event.FakeNews) error {
 			assert.Equal(t, 20, len(events))
 			return nil
 		}
@@ -73,7 +73,7 @@ func TestWorker(t *testing.T) {
 			}
 		}
 
-		eventSenderFn := func(events []event.FakeNews) error {
+		eventSenderFn := func(ctx context.Context, events []event.FakeNews) error {
 			assert.Equal(t, 10, len(events))
 			return nil
 		}
@@ -99,7 +99,7 @@ func TestWorker(t *testing.T) {
 			}
 		}
 
-		eventSenderFn := func(events []event.FakeNews) error {
+		eventSenderFn := func(ctx context.Context, events []event.FakeNews) error {
 			assert.Equal(t, 0, len(events))
 			return nil
 		}

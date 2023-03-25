@@ -57,7 +57,7 @@ func main() {
 				cfg.Worker.PredictorBaseURL,
 			),
 		),
-		event.SendFakeNewsEventFnBuilder(sqsClient),
+		event.SendFakeNewsEventFnBuilder(sqsClient, log),
 		worker.WithInterval(time.Second*time.Duration(cfg.IntervalSeconds)),
 	)
 

@@ -220,7 +220,7 @@ func (w *Worker) postProcess(results processor.JobResults) error {
 		}
 	}
 
-	err := w.fakeNewsEventSender(events)
+	err := w.fakeNewsEventSender(context.Background(), events)
 
 	if err != nil {
 		return errors.New("failed to send events")
