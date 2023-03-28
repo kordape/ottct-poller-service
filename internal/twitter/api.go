@@ -41,9 +41,9 @@ type getUserTweetsResponse struct {
 }
 
 type tweet struct {
-	CreatedAt string `json:"created_at"`
-	ID        string `json:"id"`
-	Text      string `json:"text"`
+	CreatedAt time.Time `json:"created_at"`
+	ID        string    `json:"id"`
+	Text      string    `json:"text"`
 }
 
 // metadata left to enable pagination option in perspective

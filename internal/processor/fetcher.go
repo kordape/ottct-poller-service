@@ -30,7 +30,7 @@ type FetchTweetsResponse []Tweet
 type Tweet struct {
 	ID        string
 	Text      string
-	CreatedAt string
+	CreatedAt time.Time
 }
 
 func (request FetchTweetsRequest) validate() error {
