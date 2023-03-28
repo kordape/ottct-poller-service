@@ -9,31 +9,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kordape/ottct-poller-service/internal/processor"
 	"github.com/kordape/ottct-poller-service/pkg/logger"
 )
-
-// testing path
-// http://localhost:8080/v1/tweets/classify?userId=1277254376&maxResults=90&startTime=2022-01-12&endTime=2022-06-15
 
 const (
 	getUsersTweetsUrl = "https://api.twitter.com/2/users/%s/tweets/"
 )
-
-// Make sure Client implement TweetsFetcher interface
-var _ processor.TweetsFetcher = &Client{}
-
-type Client struct {
-	httpClient  *http.Client
-	bearerToken string
-}
-
-func New(client *http.Client, bearerToken string) *Client {
-	return &Client{
-		bearerToken: bearerToken,
-		httpClient:  client,
-	}
-}
 
 type getUserTweetsResponse struct {
 	Data []tweet  `json:"data"`
@@ -54,7 +35,7 @@ type metadata struct {
 	PreviousToken string `json:"previous_token"`
 }
 
-func (client *Client) FetchTweets(ctx context.Context, log logger.Interface, ftr processor.FetchTweetsRequest) (processor.FetchTweetsResponse, error) {
+func (client *Client) FetchTweets(ctx context.Context, log logger.Interface, ftr FetchTweetsRequest) (FetchTweetsResponse, error) {
 	baseUrl := fmt.Sprintf(getUsersTweetsUrl, ftr.EntityID)
 	queryParams := []string{
 		fmt.Sprintf("max_results=%d", ftr.MaxResults),
@@ -93,9 +74,9 @@ func (client *Client) FetchTweets(ctx context.Context, log logger.Interface, ftr
 	}
 
 	log.Info(fmt.Sprintf("Received response from Twitter API: %v", twitterResponse))
-	result := make([]processor.Tweet, len(twitterResponse.Data))
+	result := make([]Tweet, len(twitterResponse.Data))
 	for i, tweet := range twitterResponse.Data {
-		result[i] = processor.Tweet{
+		result[i] = Tweet{
 			ID:        tweet.ID,
 			Text:      tweet.Text,
 			CreatedAt: tweet.CreatedAt,

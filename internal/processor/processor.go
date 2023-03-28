@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/kordape/ottct-poller-service/pkg/logger"
+	"github.com/kordape/ottct-poller-service/pkg/predictor"
+	"github.com/kordape/ottct-poller-service/pkg/twitter"
 )
 
 const (
@@ -34,17 +36,17 @@ type JobResults []JobResult
 
 type ProcessFn func(ctx context.Context, request JobRequest) JobResult
 
-func GetProcessFn(log logger.Interface, fetcher TweetsFetcher, classifier FakeNewsClassifier) ProcessFn {
+func GetProcessFn(log logger.Interface, fetcher twitter.TweetsFetcher, classifier predictor.FakeNewsClassifier) ProcessFn {
 	return func(ctx context.Context, request JobRequest) JobResult {
 		// Fetch tweets in given time window
-		fetchRequest := FetchTweetsRequest{
+		fetchRequest := twitter.FetchTweetsRequest{
 			EntityID:   request.EntityID,
 			StartTime:  request.StartTime,
 			EndTime:    request.EndTime,
 			MaxResults: defaultFetchCount,
 		}
 
-		if err := fetchRequest.validate(); err != nil {
+		if err := fetchRequest.Validate(); err != nil {
 			return JobResult{
 				EntityID: request.EntityID,
 				Error:    err,
@@ -61,7 +63,7 @@ func GetProcessFn(log logger.Interface, fetcher TweetsFetcher, classifier FakeNe
 		}
 		log.Info(fmt.Sprintf("Fetched tweets: %v", tweets))
 
-		classifyRequest := make(ClassifyRequest, len(tweets))
+		classifyRequest := make(predictor.ClassifyRequest, len(tweets))
 		for i, t := range tweets {
 			classifyRequest[i] = t.Text
 		}
@@ -88,7 +90,7 @@ func GetProcessFn(log logger.Interface, fetcher TweetsFetcher, classifier FakeNe
 		fakeTweets := []FakeNewsTweet{}
 		// Filter out only fake tweets
 		for i, c := range classifyResponse.Classification {
-			if c == Fake {
+			if c == predictor.Fake {
 				fakeTweets = append(fakeTweets, FakeNewsTweet{
 					Content:   tweets[i].Text,
 					Timestamp: tweets[i].CreatedAt,

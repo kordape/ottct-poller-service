@@ -1,7 +1,8 @@
-package processor
+package predictor
 
 import (
 	"context"
+	"net/http"
 )
 
 type Classification int
@@ -20,4 +21,19 @@ type ClassifyRequest []string
 
 type ClassifyResponse struct {
 	Classification []Classification
+}
+
+// Make sure Client implement FakeNewsClassifier interface
+var _ FakeNewsClassifier = &Client{}
+
+type Client struct {
+	httpClient *http.Client
+	baseURL    string
+}
+
+func New(client *http.Client, baseURL string) *Client {
+	return &Client{
+		httpClient: client,
+		baseURL:    baseURL,
+	}
 }

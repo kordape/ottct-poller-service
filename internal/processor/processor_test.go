@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/kordape/ottct-poller-service/pkg/logger"
+	"github.com/kordape/ottct-poller-service/pkg/predictor"
+	"github.com/kordape/ottct-poller-service/pkg/twitter"
 	"github.com/stretchr/testify/assert"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -14,18 +16,18 @@ import (
 func TestProcess(t *testing.T) {
 
 	t.Run("failed fetching", func(t *testing.T) {
-		fetcher := NewMockTweetsFetcher(t)
-		classifier := NewMockFakeNewsClassifier(t)
+		fetcher := twitter.NewMockTweetsFetcher(t)
+		classifier := predictor.NewMockFakeNewsClassifier(t)
 
 		now := time.Now()
-		expectedFetchRequest := FetchTweetsRequest{
+		expectedFetchRequest := twitter.FetchTweetsRequest{
 			EntityID:   "entity",
 			StartTime:  now,
 			EndTime:    now,
 			MaxResults: defaultFetchCount,
 		}
 		fetcher.On("FetchTweets", mock.Anything, mock.Anything, expectedFetchRequest).Return(
-			FetchTweetsResponse{},
+			twitter.FetchTweetsResponse{},
 			errors.New("big error"),
 		)
 
@@ -43,18 +45,18 @@ func TestProcess(t *testing.T) {
 	})
 
 	t.Run("failed classifying", func(t *testing.T) {
-		fetcher := NewMockTweetsFetcher(t)
-		classifier := NewMockFakeNewsClassifier(t)
+		fetcher := twitter.NewMockTweetsFetcher(t)
+		classifier := predictor.NewMockFakeNewsClassifier(t)
 
 		now := time.Now()
-		expectedFetchRequest := FetchTweetsRequest{
+		expectedFetchRequest := twitter.FetchTweetsRequest{
 			EntityID:   "entity",
 			StartTime:  now,
 			EndTime:    now,
 			MaxResults: defaultFetchCount,
 		}
 		fetcher.On("FetchTweets", mock.Anything, mock.Anything, expectedFetchRequest).Return(
-			FetchTweetsResponse([]Tweet{
+			twitter.FetchTweetsResponse([]twitter.Tweet{
 				{
 					ID:        "1",
 					Text:      "Dummy 1",
@@ -75,10 +77,10 @@ func TestProcess(t *testing.T) {
 			nil,
 		)
 
-		classifier.On("Classify", mock.Anything, ClassifyRequest([]string{
+		classifier.On("Classify", mock.Anything, predictor.ClassifyRequest([]string{
 			"Dummy 1", "Dummy 2", "Dummy 3",
 		})).Return(
-			ClassifyResponse{},
+			predictor.ClassifyResponse{},
 			errors.New("big error"),
 		)
 
@@ -95,18 +97,18 @@ func TestProcess(t *testing.T) {
 	})
 
 	t.Run("success", func(t *testing.T) {
-		fetcher := NewMockTweetsFetcher(t)
-		classifier := NewMockFakeNewsClassifier(t)
+		fetcher := twitter.NewMockTweetsFetcher(t)
+		classifier := predictor.NewMockFakeNewsClassifier(t)
 
 		now := time.Now()
-		expectedFetchRequest := FetchTweetsRequest{
+		expectedFetchRequest := twitter.FetchTweetsRequest{
 			EntityID:   "entity",
 			StartTime:  now,
 			EndTime:    now,
 			MaxResults: defaultFetchCount,
 		}
 		fetcher.On("FetchTweets", mock.Anything, mock.Anything, expectedFetchRequest).Return(
-			FetchTweetsResponse([]Tweet{
+			twitter.FetchTweetsResponse([]twitter.Tweet{
 				{
 					ID:        "1",
 					Text:      "Dummy 1",
@@ -127,14 +129,14 @@ func TestProcess(t *testing.T) {
 			nil,
 		)
 
-		classifier.On("Classify", mock.Anything, ClassifyRequest([]string{
+		classifier.On("Classify", mock.Anything, predictor.ClassifyRequest([]string{
 			"Dummy 1", "Dummy 2", "Dummy 3",
 		})).Return(
-			ClassifyResponse{
-				Classification: []Classification{
-					Fake,
-					Real,
-					Fake,
+			predictor.ClassifyResponse{
+				Classification: []predictor.Classification{
+					predictor.Fake,
+					predictor.Real,
+					predictor.Fake,
 				},
 			},
 			nil,
