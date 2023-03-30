@@ -13,8 +13,11 @@ import (
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	awssqs "github.com/aws/aws-sdk-go-v2/service/sqs"
+	pg "gorm.io/driver/postgres"
+	"gorm.io/gorm"
 
 	"github.com/kordape/ottct-poller-service/config"
+	"github.com/kordape/ottct-poller-service/internal/database/postgres"
 	"github.com/kordape/ottct-poller-service/internal/event"
 	"github.com/kordape/ottct-poller-service/internal/processor"
 	"github.com/kordape/ottct-poller-service/internal/worker"
@@ -40,6 +43,22 @@ func main() {
 	awsSQSClient := awssqs.NewFromConfig(awsConfig)
 	sqsClient := sqs.NewClient(awsSQSClient, cfg.FakeNewsQueue.SQSQueueURL)
 
+	dbClient, err := gorm.Open(pg.Open(cfg.DB.URL), &gorm.Config{})
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	db, err := postgres.New(dbClient, log)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = db.Migrate()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	w, err := worker.NewWorker(
 		log,
 		processor.GetProcessFn(
@@ -58,6 +77,7 @@ func main() {
 			),
 		),
 		event.SendFakeNewsEventFnBuilder(sqsClient, log),
+		db,
 		worker.WithInterval(time.Second*time.Duration(cfg.IntervalSeconds)),
 	)
 

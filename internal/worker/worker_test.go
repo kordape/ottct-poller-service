@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/kordape/ottct-poller-service/internal/database"
 	"github.com/kordape/ottct-poller-service/internal/event"
 	"github.com/kordape/ottct-poller-service/internal/processor"
 	"github.com/kordape/ottct-poller-service/pkg/logger"
@@ -38,7 +39,9 @@ func TestWorker(t *testing.T) {
 			return nil
 		}
 
-		w, err := NewWorker(log, processEntityFn, eventSenderFn, WithInterval(5*time.Second))
+		db := database.NewMockEntityStorage(t)
+
+		w, err := NewWorker(log, processEntityFn, eventSenderFn, db, WithInterval(5*time.Second))
 		assert.NoError(t, err)
 
 		err = w.Run()
@@ -78,7 +81,9 @@ func TestWorker(t *testing.T) {
 			return nil
 		}
 
-		w, err := NewWorker(log, processEntityFn, eventSenderFn, WithInterval(5*time.Second))
+		db := database.NewMockEntityStorage(t)
+
+		w, err := NewWorker(log, processEntityFn, eventSenderFn, db, WithInterval(5*time.Second))
 		assert.NoError(t, err)
 
 		err = w.Run()
@@ -104,7 +109,9 @@ func TestWorker(t *testing.T) {
 			return nil
 		}
 
-		w, err := NewWorker(log, processEntityFn, eventSenderFn, WithInterval(5*time.Second), WithProcessorTimeout(2000))
+		db := database.NewMockEntityStorage(t)
+
+		w, err := NewWorker(log, processEntityFn, eventSenderFn, db, WithInterval(5*time.Second), WithProcessorTimeout(2000))
 		assert.NoError(t, err)
 
 		err = w.Run()
