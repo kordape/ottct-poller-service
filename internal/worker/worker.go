@@ -147,10 +147,17 @@ func (w *Worker) process() (processor.JobResults, error) {
 	ctxProcessor, cancel := context.WithTimeout(context.Background(), time.Millisecond*time.Duration(w.processorTimeoutInMs))
 	defer cancel()
 
-	// TODO: replace this line with fetched entities from db
-	entities := []string{"foo", "bar"}
+	entities, err := w.entityStorage.GetEntities(ctxProcessor)
+	if err != nil {
+		return processor.JobResults{}, fmt.Errorf("failed to get entities: %w", err)
+	}
 
-	resultsChannels := w.startProcessing(ctxProcessor, entities, startTime, endTime)
+	entityIds := make([]string, len(entities))
+	for i, e := range entities {
+		entityIds[i] = e.TwitterId
+	}
+
+	resultsChannels := w.startProcessing(ctxProcessor, entityIds, startTime, endTime)
 	results := make(processor.JobResults, 0, len(entities))
 	processingEnded := w.collectResults(&results, resultsChannels)
 

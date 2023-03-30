@@ -12,6 +12,7 @@ import (
 	"github.com/kordape/ottct-poller-service/internal/processor"
 	"github.com/kordape/ottct-poller-service/pkg/logger"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestWorker(t *testing.T) {
@@ -40,6 +41,18 @@ func TestWorker(t *testing.T) {
 		}
 
 		db := database.NewMockEntityStorage(t)
+		db.On("GetEntities", mock.Anything).Return([]database.Entity{
+			{
+				ID:          "id1",
+				TwitterId:   "foo",
+				DisplayName: "foo",
+			},
+			{
+				ID:          "id2",
+				TwitterId:   "bar",
+				DisplayName: "bar",
+			},
+		}, nil)
 
 		w, err := NewWorker(log, processEntityFn, eventSenderFn, db, WithInterval(5*time.Second))
 		assert.NoError(t, err)
@@ -82,6 +95,18 @@ func TestWorker(t *testing.T) {
 		}
 
 		db := database.NewMockEntityStorage(t)
+		db.On("GetEntities", mock.Anything).Return([]database.Entity{
+			{
+				ID:          "id1",
+				TwitterId:   "foo",
+				DisplayName: "foo",
+			},
+			{
+				ID:          "id2",
+				TwitterId:   "bar",
+				DisplayName: "bar",
+			},
+		}, nil)
 
 		w, err := NewWorker(log, processEntityFn, eventSenderFn, db, WithInterval(5*time.Second))
 		assert.NoError(t, err)
@@ -110,6 +135,18 @@ func TestWorker(t *testing.T) {
 		}
 
 		db := database.NewMockEntityStorage(t)
+		db.On("GetEntities", mock.Anything).Return([]database.Entity{
+			{
+				ID:          "id1",
+				TwitterId:   "foo",
+				DisplayName: "foo",
+			},
+			{
+				ID:          "id2",
+				TwitterId:   "bar",
+				DisplayName: "bar",
+			},
+		}, nil)
 
 		w, err := NewWorker(log, processEntityFn, eventSenderFn, db, WithInterval(5*time.Second), WithProcessorTimeout(2000))
 		assert.NoError(t, err)
