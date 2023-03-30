@@ -1,8 +1,9 @@
-package processor
+package twitter
 
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/kordape/ottct-poller-service/pkg/logger"
@@ -33,7 +34,22 @@ type Tweet struct {
 	CreatedAt time.Time
 }
 
-func (request FetchTweetsRequest) validate() error {
+// Make sure Client implement TweetsFetcher interface
+var _ TweetsFetcher = &Client{}
+
+type Client struct {
+	httpClient  *http.Client
+	bearerToken string
+}
+
+func New(client *http.Client, bearerToken string) *Client {
+	return &Client{
+		bearerToken: bearerToken,
+		httpClient:  client,
+	}
+}
+
+func (request FetchTweetsRequest) Validate() error {
 	if request.MaxResults < fetchTweetsMinResults || request.MaxResults > fetchTweetsMaxResults {
 		return fmt.Errorf("invalid max results parameter - can range from %d to %d", fetchTweetsMinResults, fetchTweetsMaxResults)
 	}
