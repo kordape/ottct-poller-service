@@ -34,6 +34,7 @@ services:
       FAKE_NEWS_QUEUE_URL: 'http://localstack:4566/000000000000/default-fake-news'
       FAKE_NEWS_QUEUE_REGION: 'us-east-1'
       FAKE_NEWS_QUEUE_ENDPOINT: 'http://localhost:4566'
+      DB_URL: 'postgres://postgres:tests@db:5432/ottct_main_service'
     networks:
       - ottct-poller-network
     links:

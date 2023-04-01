@@ -7,10 +7,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/kordape/ottct-poller-service/internal/database"
 	"github.com/kordape/ottct-poller-service/internal/event"
 	"github.com/kordape/ottct-poller-service/internal/processor"
 	"github.com/kordape/ottct-poller-service/pkg/logger"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestWorker(t *testing.T) {
@@ -38,7 +40,21 @@ func TestWorker(t *testing.T) {
 			return nil
 		}
 
-		w, err := NewWorker(log, processEntityFn, eventSenderFn, WithInterval(5*time.Second))
+		db := database.NewMockEntityStorage(t)
+		db.On("GetEntities", mock.Anything).Return([]database.Entity{
+			{
+				ID:          "id1",
+				TwitterId:   "foo",
+				DisplayName: "foo",
+			},
+			{
+				ID:          "id2",
+				TwitterId:   "bar",
+				DisplayName: "bar",
+			},
+		}, nil)
+
+		w, err := NewWorker(log, processEntityFn, eventSenderFn, db, WithInterval(5*time.Second))
 		assert.NoError(t, err)
 
 		err = w.Run()
@@ -78,7 +94,21 @@ func TestWorker(t *testing.T) {
 			return nil
 		}
 
-		w, err := NewWorker(log, processEntityFn, eventSenderFn, WithInterval(5*time.Second))
+		db := database.NewMockEntityStorage(t)
+		db.On("GetEntities", mock.Anything).Return([]database.Entity{
+			{
+				ID:          "id1",
+				TwitterId:   "foo",
+				DisplayName: "foo",
+			},
+			{
+				ID:          "id2",
+				TwitterId:   "bar",
+				DisplayName: "bar",
+			},
+		}, nil)
+
+		w, err := NewWorker(log, processEntityFn, eventSenderFn, db, WithInterval(5*time.Second))
 		assert.NoError(t, err)
 
 		err = w.Run()
@@ -104,7 +134,21 @@ func TestWorker(t *testing.T) {
 			return nil
 		}
 
-		w, err := NewWorker(log, processEntityFn, eventSenderFn, WithInterval(5*time.Second), WithProcessorTimeout(2000))
+		db := database.NewMockEntityStorage(t)
+		db.On("GetEntities", mock.Anything).Return([]database.Entity{
+			{
+				ID:          "id1",
+				TwitterId:   "foo",
+				DisplayName: "foo",
+			},
+			{
+				ID:          "id2",
+				TwitterId:   "bar",
+				DisplayName: "bar",
+			},
+		}, nil)
+
+		w, err := NewWorker(log, processEntityFn, eventSenderFn, db, WithInterval(5*time.Second), WithProcessorTimeout(2000))
 		assert.NoError(t, err)
 
 		err = w.Run()

@@ -7,6 +7,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/kordape/ottct-poller-service/internal/database"
 	"github.com/kordape/ottct-poller-service/internal/event"
 	"github.com/kordape/ottct-poller-service/internal/processor"
 	"github.com/kordape/ottct-poller-service/pkg/logger"
@@ -27,6 +28,7 @@ type Worker struct {
 	processorTimeoutInMs int64
 	processor            processor.ProcessFn
 	fakeNewsEventSender  event.SendFakeNewsEventFn
+	entityStorage        database.EntityStorage
 }
 
 type Option func(w *Worker)
@@ -43,7 +45,7 @@ func WithProcessorTimeout(timeoutInMs int64) Option {
 	}
 }
 
-func NewWorker(log logger.Interface, processor processor.ProcessFn, fakeNewsEventSender event.SendFakeNewsEventFn, opts ...Option) (*Worker, error) {
+func NewWorker(log logger.Interface, processor processor.ProcessFn, fakeNewsEventSender event.SendFakeNewsEventFn, entityStorage database.EntityStorage, opts ...Option) (*Worker, error) {
 	stopChan := make(chan bool)
 
 	w := &Worker{
@@ -53,6 +55,7 @@ func NewWorker(log logger.Interface, processor processor.ProcessFn, fakeNewsEven
 		processorTimeoutInMs: defaultProcessorTimeoutInMs,
 		processor:            processor,
 		fakeNewsEventSender:  fakeNewsEventSender,
+		entityStorage:        entityStorage,
 	}
 
 	for _, opt := range opts {
@@ -77,6 +80,10 @@ func (w *Worker) validate() error {
 
 	if w.fakeNewsEventSender == nil {
 		return errors.New("fake news event sender is nil")
+	}
+
+	if w.entityStorage == nil {
+		return errors.New("entity storage is nil")
 	}
 
 	return nil
@@ -140,10 +147,17 @@ func (w *Worker) process() (processor.JobResults, error) {
 	ctxProcessor, cancel := context.WithTimeout(context.Background(), time.Millisecond*time.Duration(w.processorTimeoutInMs))
 	defer cancel()
 
-	// TODO: replace this line with fetched entities from db
-	entities := []string{"foo", "bar"}
+	entities, err := w.entityStorage.GetEntities(ctxProcessor)
+	if err != nil {
+		return processor.JobResults{}, fmt.Errorf("failed to get entities: %w", err)
+	}
 
-	resultsChannels := w.startProcessing(ctxProcessor, entities, startTime, endTime)
+	entityIds := make([]string, len(entities))
+	for i, e := range entities {
+		entityIds[i] = e.TwitterId
+	}
+
+	resultsChannels := w.startProcessing(ctxProcessor, entityIds, startTime, endTime)
 	results := make(processor.JobResults, 0, len(entities))
 	processingEnded := w.collectResults(&results, resultsChannels)
 

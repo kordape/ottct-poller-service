@@ -13,12 +13,18 @@ type (
 		Log           `yaml:"logger"`
 		Worker        `yaml:"worker"`
 		FakeNewsQueue `yaml:"fake_news_queue"`
+		DB            `yaml:"db"`
 	}
 
 	// App -.
 	App struct {
 		Name    string `env-required:"true" yaml:"name"    env:"APP_NAME"`
 		Version string `env-required:"true" yaml:"version" env:"APP_VERSION"`
+	}
+
+	// Entities DB
+	DB struct {
+		URL string `env-required:"true" yaml:"username" env:"DB_URL"`
 	}
 
 	// Log -.
