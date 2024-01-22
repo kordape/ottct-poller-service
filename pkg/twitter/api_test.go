@@ -29,11 +29,21 @@ func (f roundTripperFunc) RoundTrip(r *http.Request) (*http.Response, error) {
 func TestFetchTweets(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
+		count := 0
 		client := newHTTPCli(func(r *http.Request) (*http.Response, error) {
+			if count == 0 {
+				count++
+				return &http.Response{
+					StatusCode: http.StatusOK,
+					Body:       io.NopCloser(bytes.NewBufferString(mocks.SuccessFirstPageResponse)),
+				}, nil
+			}
+
 			return &http.Response{
 				StatusCode: http.StatusOK,
 				Body:       io.NopCloser(bytes.NewBufferString(mocks.SuccessResponse)),
 			}, nil
+
 		})
 
 		api := New(client, "futile")
