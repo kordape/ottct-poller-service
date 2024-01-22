@@ -73,7 +73,7 @@ func (client *Client) FetchTweets(ctx context.Context, log logger.Interface, ftr
 		}
 	}
 
-	log.Info(fmt.Sprintf("Received response from Twitter API: %v", resp))
+	log.Info(fmt.Sprintf("Received response from Twitter API with %d tweets", len(result)))
 
 	return result, nil
 }
