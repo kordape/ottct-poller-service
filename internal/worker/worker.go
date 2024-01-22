@@ -16,6 +16,7 @@ import (
 const (
 	defaultTickInterval         = 10 * time.Second
 	defaultProcessorTimeoutInMs = 2 * int64(time.Millisecond)
+	taskPoolSize                = 2
 )
 
 type Worker struct {
@@ -110,14 +111,17 @@ func (w *Worker) Run() error {
 				w.log.Info("Stopping worker")
 				return
 			case <-ticker.C:
-				// create processing task
-				w.log.Info("Worker tick")
-				results, err := w.process()
-				if err != nil {
-					w.log.Error(fmt.Sprintf("Processor finished with error: %v", err))
-				}
-				w.log.Info(fmt.Sprintf("Worker tick done, got %d results", len(results)))
-				w.postProcess(results)
+				go func() {
+					// create processing task
+					w.log.Info("Worker tick")
+					results, err := w.process()
+					if err != nil {
+						w.log.Error(fmt.Sprintf("Processor finished with error: %v", err))
+					}
+					w.log.Info(fmt.Sprintf("Worker tick done, got %d results", len(results)))
+					w.postProcess(results)
+				}()
+
 			}
 		}
 	}()
@@ -138,83 +142,69 @@ func (w *Worker) Stop() {
 }
 
 func (w *Worker) process() (processor.JobResults, error) {
+	ctx := context.Background()
 	endTime := time.Now()
 	startTime := endTime.Add(-w.tickInterval)
 
 	w.log.Info(fmt.Sprintf("Processing for interval: %s - %s", startTime.Format(time.RFC3339), endTime.Format(time.RFC3339)))
 
-	// Create a context with a timeout
-	ctxProcessor, cancel := context.WithTimeout(context.Background(), time.Millisecond*time.Duration(w.processorTimeoutInMs))
-	defer cancel()
-
-	entities, err := w.entityStorage.GetEntities(ctxProcessor)
+	entities, err := w.entityStorage.GetEntities(ctx)
 	if err != nil {
 		return processor.JobResults{}, fmt.Errorf("failed to get entities: %w", err)
 	}
 
-	entityIds := make([]string, len(entities))
+	requests := make([]processor.JobRequest, len(entities))
 	for i, e := range entities {
-		entityIds[i] = e.TwitterId
-	}
-
-	resultsChannels := w.startProcessing(ctxProcessor, entityIds, startTime, endTime)
-	results := make(processor.JobResults, 0, len(entities))
-	processingEnded := w.collectResults(&results, resultsChannels)
-
-	select {
-	case <-processingEnded:
-		w.log.Info(fmt.Sprintf("Processing ended, processed %d results", len(results)))
-		w.log.Info(fmt.Sprintf("Results: %v", results))
-		return results, nil
-	case <-ctxProcessor.Done():
-		// If context is cancelled (i.e. timeout reached)
-		// return context canceled error
-		return results, context.Canceled
-	}
-
-}
-
-func (w *Worker) startProcessing(ctx context.Context, entities []string, startTime time.Time, endTime time.Time) []<-chan processor.JobResult {
-	resultChannels := make([]<-chan processor.JobResult, len(entities))
-	for i, e := range entities {
-		ch := make(chan processor.JobResult, 1)
-
-		entity := e
-		go func(process processor.ProcessFn) {
-			defer close(ch)
-			select {
-			case ch <- process(ctx, processor.JobRequest{
-				EntityID:  entity,
-				StartTime: startTime,
-				EndTime:   endTime,
-			}):
-			case <-ctx.Done():
-				return
-			}
-		}(w.processor)
-		resultChannels[i] = ch
-	}
-
-	return resultChannels
-}
-
-func (w *Worker) collectResults(results *processor.JobResults, resultsChannels []<-chan processor.JobResult) chan struct{} {
-	processingEnded := make(chan struct{})
-	go func() {
-		defer close(processingEnded)
-		for _, ch := range resultsChannels {
-			for result := range ch {
-				if result.Error != nil {
-					w.log.Error(fmt.Sprintf("Received error job result: %v", result.Error))
-					continue
-				}
-				w.log.Info(fmt.Sprintf("Received result: %s", result.EntityID))
-				*results = append(*results, result)
-			}
+		requests[i] = processor.JobRequest{
+			EntityID:  e.TwitterId,
+			StartTime: startTime,
+			EndTime:   endTime,
 		}
-	}()
+	}
 
-	return processingEnded
+	results := w.pooledTasks(ctx, requests)
+	return results, nil
+
+}
+
+func (w *Worker) pooledTasks(ctx context.Context, requests []processor.JobRequest) processor.JobResults {
+	numJobs := len(requests)
+	jobs := make(chan processor.JobRequest, numJobs)
+	results := make(chan processor.JobResult, numJobs)
+	defer close(results)
+
+	for t := 0; t < taskPoolSize; t++ {
+		go w.task(ctx, t, jobs, results)
+	}
+
+	for _, r := range requests {
+		jobs <- r
+	}
+	close(jobs)
+
+	//collectResults
+	jobResults := make(processor.JobResults, numJobs)
+	for i := 0; i < numJobs; i++ {
+		jobResults[i] = <-results
+	}
+
+	return jobResults
+
+}
+
+func (w *Worker) task(ctx context.Context, id int, jobs <-chan processor.JobRequest, results chan<- processor.JobResult) {
+	for job := range jobs {
+		request := job
+		select {
+		case <-time.After(time.Millisecond * 2):
+			w.log.Info("PROCESSOR TIMEOUT")
+			results <- processor.JobResult{
+				EntityID: job.EntityID,
+				Error:    context.Canceled,
+			}
+		case results <- w.processor(ctx, request):
+		}
+	}
 }
 
 func (w *Worker) postProcess(results processor.JobResults) error {
@@ -222,6 +212,7 @@ func (w *Worker) postProcess(results processor.JobResults) error {
 
 	for _, result := range results {
 		if result.Error != nil {
+			w.log.Debug(fmt.Sprintf("Skipping error result: %s", result.Error))
 			continue
 		}
 

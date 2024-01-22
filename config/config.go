@@ -42,7 +42,7 @@ type (
 	// FakeNewsQueue holds configuration for `FakeNewsQueue` queue.
 	FakeNewsQueue struct {
 		SQSQueueURL    string `env-required:"true" yaml:"queue_url" env:"FAKE_NEWS_QUEUE_URL"`
-		SQSAWSEndpoint string `env-required:"false" yaml:"queue_endpoint" env:"FAKE_NEWS_QUEUE_ENDPOINT"`
+		SQSAWSEndpoint string `yaml:"queue_endpoint" env:"FAKE_NEWS_QUEUE_ENDPOINT"`
 		SQSRegion      string `env-required:"true" yaml:"queue_region" env:"FAKE_NEWS_QUEUE_REGION"`
 	}
 )
